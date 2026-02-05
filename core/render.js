@@ -2,6 +2,12 @@ export function initRenderer(root, data, state) {
   const grid = root.querySelector('#poseGrid');
   const stats = root.querySelector('#stats');
 
+// подсветка активного типа
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.classList.toggle('active', btn.textContent === state.poseType);
+});
+
+
   function render() {
     let poses = data.poses;
 
