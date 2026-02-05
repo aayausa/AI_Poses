@@ -1,5 +1,6 @@
 // core/render.js
 
+import { buildFinalPrompt } from './promptEngine.js';
 export function initRenderer(root, data, state) {
   const grid = root.querySelector('#poseGrid');
   const stats = root.querySelector('#stats');
@@ -81,6 +82,11 @@ export function initRenderer(root, data, state) {
     stats.innerHTML = parts.length
       ? parts.join(' · ')
       : 'Выбери параметры';
+    const finalPrompt = buildFinalPrompt(state, data);
+if (finalPrompt) {
+  parts.push(`<br><span class="text-muted">Prompt:</span> ${finalPrompt}`);
+}
+
   }
 
   state.onChange = render;
