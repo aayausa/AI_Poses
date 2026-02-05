@@ -1,6 +1,8 @@
+// core/state.js
+
 export function initState() {
   return {
-    poseType: 'standing', // ← ВАЖНО
+    poseType: null,        // ← ВАЖНО: НИКАКОГО ФИЛЬТРА ПО УМОЛЧАНИЮ
     selectedPose: null,
 
     camera: null,
