@@ -7,59 +7,66 @@ export function initRenderer(root, data, state) {
   const stats = root.querySelector('#stats');
 
   function render() {
-    // ===== 1. ФИЛЬТРАЦИЯ (БЕЗ ВОЗМОЖНОСТИ ПУСТОТЫ) =====
-    let poses = data.poses;
+    // ===== 1. БЕЗОПАСНО ПОЛУЧАЕМ ПОЗЫ =====
+    let poses = Array.isArray(data.poses) ? data.poses : [];
 
+    // ===== 2. ФИЛЬТР ПО ТИПУ (НО БЕЗ ПУСТОТЫ) =====
     if (state.poseType) {
       const filtered = poses.filter(p => p.type === state.poseType);
-      poses = filtered.length ? filtered : poses;
+      if (filtered.length) poses = filtered;
     }
 
-    // ===== 2. РЕНДЕР КАРТОЧЕК =====
+    // ===== 3. РЕНДЕР КАРТОЧЕК =====
     grid.innerHTML = '';
 
-    poses.forEach(pose => {
-      const col = document.createElement('div');
-      col.className = 'col-12 col-sm-6 col-lg-4';
-
-      const isActive = state.selectedPose === pose.id;
-
-      col.innerHTML = `
-        <div class="card h-100 ${isActive ? 'border-dark shadow-sm' : ''}" style="cursor:pointer">
-          <div class="card-body d-flex flex-column">
-            <h6 class="card-title mb-1">${pose.name}</h6>
-
-            <div class="small text-muted mb-2">
-              ${pose.type} · ${pose.composition}
-            </div>
-
-            <div class="small fst-italic text-secondary mt-auto">
-              ${pose.prompt?.base || ''}
-            </div>
-          </div>
+    if (!poses.length) {
+      grid.innerHTML = `
+        <div class="col-12 text-muted">
+          Нет поз
         </div>
       `;
+    } else {
+      poses.forEach(pose => {
+        const col = document.createElement('div');
+        col.className = 'col-12 col-sm-6 col-lg-4';
 
-      col.onclick = () => {
-        state.selectedPose = pose.id;
+        const isActive = state.selectedPose === pose.id;
 
-        // синхронизация select позы
-        const select = document.getElementById('poseSelect');
-        if (select) select.value = pose.id;
+        col.innerHTML = `
+          <div class="card h-100 ${isActive ? 'border-dark shadow-sm' : ''}" style="cursor:pointer">
+            <div class="card-body">
+              <h6 class="card-title mb-1">${pose.name}</h6>
+              <div class="small text-muted mb-2">
+                ${pose.type} · ${pose.composition}
+              </div>
+              <div class="small fst-italic text-secondary">
+                ${pose.prompt?.base || ''}
+              </div>
+            </div>
+          </div>
+        `;
 
-        state.onChange();
-      };
+        col.onclick = () => {
+          state.selectedPose = pose.id;
 
-      grid.appendChild(col);
-    });
+          // синхронизация select
+          const select = document.getElementById('poseSelect');
+          if (select) select.value = pose.id;
 
-    // ===== 3. СИНХРОНИЗАЦИЯ SELECT ПОЗЫ =====
+          state.onChange();
+        };
+
+        grid.appendChild(col);
+      });
+    }
+
+    // ===== 4. СИНХРОНИЗАЦИЯ SELECT ВСЕГДА =====
     const poseSelect = document.getElementById('poseSelect');
     if (poseSelect) {
       poseSelect.value = state.selectedPose || '';
     }
 
-    // ===== 4. СТАТУС + PROMPT =====
+    // ===== 5. СТАТУС + PROMPT =====
     renderStats();
   }
 
@@ -94,9 +101,9 @@ export function initRenderer(root, data, state) {
     `;
   }
 
-  // ===== 5. ПОДПИСКА НА STATE =====
+  // ===== 6. ПОДПИСКА НА STATE =====
   state.onChange = render;
 
-  // ===== 6. ПЕРВЫЙ РЕНДЕР =====
+  // ===== 7. ПЕРВЫЙ РЕНДЕР =====
   render();
 }

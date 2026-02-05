@@ -7,6 +7,7 @@ import { wardrobeDB } from '../data/wardrobe.db.js';
 import { colorDB } from '../data/color.db.js';
 import { emotionDB } from '../data/emotion.db.js';
 
+
 console.log('DATA LOADER VERSION: NAMED IMPORTS ONLY', {
   cameraDB,
   locationDB,
@@ -18,11 +19,12 @@ console.log('DATA LOADER VERSION: NAMED IMPORTS ONLY', {
 
 export async function loadAllData() {
   return {
-    poses: posesDB,
-    cameras: cameraDB,
-    locations: locationDB,
-    wardrobe: wardrobeDB,
-    colors: colorDB,
-    emotions: emotionDB
-  };
+  poses: posesDB,
+  poseVisuals: poseVisualsDB,
+  cameras: cameraDB,
+  locations: locationDB,
+  wardrobe: wardrobeDB,
+  colors: colorDB,
+  emotions: emotionDB
+};
 }
