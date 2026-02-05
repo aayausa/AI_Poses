@@ -7,6 +7,15 @@ import { wardrobeDB } from '../data/wardrobe.db.js';
 import { colorDB } from '../data/color.db.js';
 import { emotionDB } from '../data/emotion.db.js';
 
+console.log('DATA LOADER VERSION: NAMED IMPORTS ONLY', {
+  cameraDB,
+  locationDB,
+  wardrobeDB,
+  colorDB,
+  emotionDB,
+  posesDB
+});
+
 export async function loadAllData() {
   return {
     poses: posesDB,
