@@ -1,7 +1,7 @@
 // core/dataLoader.js
 
 import { posesDB } from '../data/poses.db.js';
-import cameraDB from '../data/camera.db.js';
+import { cameraDB } from '../data/camera.db.js';
 import { locationDB } from '../data/location.db.js';
 import { wardrobeDB } from '../data/wardrobe.db.js';
 import { colorDB } from '../data/color.db.js';
