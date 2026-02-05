@@ -1,4 +1,4 @@
-// data/camera.db.js
-export const cameraDB = {
-  neutral: { name: 'Нейтральная', prompt: '' }
+// data/color.db.js
+export const colorDB = {
+  neutral: { name: 'Белый', prompt: 'white' }
 };
