@@ -1,97 +1,147 @@
 // core/PoseSVGRenderer.js
 
-const COLORS = ['#2563EB', '#DC2626', '#059669', '#D97706'];
+const COLORS = ['#2563EB', '#DC2626', '#059669'];
 
 export function renderPoseSVG(pose) {
-  // ЖЁСТКАЯ ЗАЩИТА
-  if (!pose) return '';
+  if (!pose || !pose.prompt || !pose.prompt.base) return '';
 
-  const type = pose.type || 'standing';
-  const composition = pose.composition || 'solo';
+  const text = pose.prompt.base.toLowerCase();
 
   const people =
-    composition === 'group' ? 3 :
-    composition === 'couple' ? 2 : 1;
+    pose.composition === 'group' ? 3 :
+    pose.composition === 'couple' ? 2 : 1;
 
-  const isLying = type === 'lying';
-  const isSitting = type === 'sitting';
-  const isPortrait = type === 'portrait';
+  const cfg = parsePose(text);
 
   const width = 120;
-  const height = isLying ? 80 : 140;
+  const height = cfg.orientation === 'lying' ? 80 : 150;
 
   let persons = '';
 
   for (let i = 0; i < people; i++) {
     const color = COLORS[i % COLORS.length];
-
-    if (isLying) {
-      persons += drawLying(10, 20 + i * 18, color);
-    } else if (isSitting) {
-      persons += drawSitting((width / (people + 1)) * (i + 1), 30, color);
-    } else if (isPortrait) {
-      persons += drawPortrait((width / (people + 1)) * (i + 1), 20, color);
-    } else {
-      // standing + action
-      persons += drawStanding((width / (people + 1)) * (i + 1), 20, color);
-    }
+    persons += drawPerson(
+      cfg,
+      people === 1 ? width / 2 : (width / (people + 1)) * (i + 1),
+      20 + i * 10,
+      color
+    );
   }
 
   return `
-    <svg
-      viewBox="0 0 ${width} ${height}"
-      width="100%"
-      height="120"
-      style="display:block"
-    >
+    <svg viewBox="0 0 ${width} ${height}" width="100%" height="120">
       ${persons}
     </svg>
   `;
 }
 
-/* ================== FIGURES ================== */
+/* ================== PARSER ================== */
 
-function drawStanding(cx, top, color) {
+function parsePose(text) {
+  return {
+    orientation: text.includes('lying') ? 'lying' :
+                 text.includes('sitting') ? 'sitting' : 'standing',
+
+    arms: text.includes('arms crossed') ? 'crossed' :
+          text.includes('arms raised') ? 'up' :
+          text.includes('hands in pockets') ? 'down' :
+          'relaxed',
+
+    legs: text.includes('legs crossed') ? 'crossed' :
+          text.includes('step') || text.includes('walking') ? 'step' :
+          'neutral',
+
+    body: text.includes('leaning forward') ? 'forward' :
+          text.includes('leaning back') ? 'back' :
+          'upright',
+
+    head: text.includes('head tilted') ? 'tilted' :
+          text.includes('head turned') ? 'turned' :
+          'neutral'
+  };
+}
+
+/* ================== DRAW ================== */
+
+function drawPerson(cfg, cx, top, color) {
+  if (cfg.orientation === 'lying') {
+    return drawLying(cx - 30, top + 20, color);
+  }
+  if (cfg.orientation === 'sitting') {
+    return drawSitting(cfg, cx, top, color);
+  }
+  return drawStanding(cfg, cx, top, color);
+}
+
+function drawStanding(cfg, cx, top, color) {
   return `
-    <circle cx="${cx}" cy="${top + 10}" r="7" fill="${color}" />
-    <rect x="${cx - 6}" y="${top + 18}" width="12" height="42" rx="6" fill="${color}" />
-
-    <line x1="${cx - 10}" y1="${top + 30}" x2="${cx - 20}" y2="${top + 52}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
-    <line x1="${cx + 10}" y1="${top + 30}" x2="${cx + 20}" y2="${top + 52}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
-
-    <line x1="${cx - 4}" y1="${top + 60}" x2="${cx - 10}" y2="${top + 90}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
-    <line x1="${cx + 4}" y1="${top + 60}" x2="${cx + 10}" y2="${top + 90}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
+    ${head(cfg, cx, top, color)}
+    <rect x="${cx - 6}" y="${top + 20}" width="12" height="40" rx="6" fill="${color}" />
+    ${arms(cfg, cx, top + 30, color)}
+    ${legs(cfg, cx, top + 60, color)}
   `;
 }
 
-function drawSitting(cx, top, color) {
+function drawSitting(cfg, cx, top, color) {
   return `
-    <circle cx="${cx}" cy="${top + 8}" r="7" fill="${color}" />
-    <rect x="${cx - 6}" y="${top + 16}" width="12" height="28" rx="6" fill="${color}" />
-
-    <line x1="${cx}" y1="${top + 44}" x2="${cx + 20}" y2="${top + 64}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
-    <line x1="${cx}" y1="${top + 44}" x2="${cx - 20}" y2="${top + 64}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
-  `;
-}
-
-function drawPortrait(cx, top, color) {
-  return `
-    <circle cx="${cx}" cy="${top + 18}" r="14" fill="${color}" />
-    <rect x="${cx - 10}" y="${top + 34}" width="20" height="18" rx="9" fill="${color}" />
+    ${head(cfg, cx, top, color)}
+    <rect x="${cx - 6}" y="${top + 20}" width="12" height="28" rx="6" fill="${color}" />
+    ${legs(cfg, cx, top + 48, color)}
   `;
 }
 
 function drawLying(x, y, color) {
   return `
-    <circle cx="${x + 10}" cy="${y + 10}" r="6" fill="${color}" />
-    <rect x="${x + 18}" y="${y + 6}" width="46" height="8" rx="4" fill="${color}" />
-    <line x1="${x + 64}" y1="${y + 10}" x2="${x + 78}" y2="${y + 18}"
-      stroke="${color}" stroke-width="4" stroke-linecap="round" />
+    <circle cx="${x}" cy="${y}" r="6" fill="${color}" />
+    <rect x="${x + 10}" y="${y - 4}" width="40" height="8" rx="4" fill="${color}" />
+  `;
+}
+
+/* ================== PARTS ================== */
+
+function head(cfg, cx, top, color) {
+  let dx = cfg.head === 'turned' ? 4 : 0;
+  let dy = cfg.head === 'tilted' ? 3 : 0;
+
+  return `<circle cx="${cx + dx}" cy="${top + 10 + dy}" r="7" fill="${color}" />`;
+}
+
+function arms(cfg, cx, y, color) {
+  if (cfg.arms === 'crossed') {
+    return `
+      <line x1="${cx - 10}" y1="${y}" x2="${cx + 10}" y2="${y + 12}"
+        stroke="${color}" stroke-width="4" />
+      <line x1="${cx + 10}" y1="${y}" x2="${cx - 10}" y2="${y + 12}"
+        stroke="${color}" stroke-width="4" />
+    `;
+  }
+  if (cfg.arms === 'up') {
+    return `
+      <line x1="${cx - 6}" y1="${y}" x2="${cx - 6}" y2="${y - 20}"
+        stroke="${color}" stroke-width="4" />
+      <line x1="${cx + 6}" y1="${y}" x2="${cx + 6}" y2="${y - 20}"
+        stroke="${color}" stroke-width="4" />
+    `;
+  }
+  return `
+    <line x1="${cx - 10}" y1="${y}" x2="${cx - 18}" y2="${y + 20}"
+      stroke="${color}" stroke-width="4" />
+    <line x1="${cx + 10}" y1="${y}" x2="${cx + 18}" y2="${y + 20}"
+      stroke="${color}" stroke-width="4" />
+  `;
+}
+
+function legs(cfg, cx, y, color) {
+  if (cfg.legs === 'step') {
+    return `
+      <line x1="${cx}" y1="${y}" x2="${cx + 14}" y2="${y + 30}"
+        stroke="${color}" stroke-width="4" />
+    `;
+  }
+  return `
+    <line x1="${cx - 4}" y1="${y}" x2="${cx - 8}" y2="${y + 30}"
+      stroke="${color}" stroke-width="4" />
+    <line x1="${cx + 4}" y1="${y}" x2="${cx + 8}" y2="${y + 30}"
+      stroke="${color}" stroke-width="4" />
   `;
 }
