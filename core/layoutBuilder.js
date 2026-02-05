@@ -1,5 +1,3 @@
-// core/layoutBuilder.js
-
 export function buildLayout(root, data, state) {
   root.innerHTML = `
     <div class="app">
@@ -7,9 +5,14 @@ export function buildLayout(root, data, state) {
       <aside class="sidebar">
         <div class="logo">AI Poses <span>MASTER</span></div>
 
-        <section id="poseTypeSection">
+        <section>
           <h3>Тип позы</h3>
-          <div class="filters" id="poseTypeFilters"></div>
+          <div id="poseTypeFilters" class="filters"></div>
+        </section>
+
+        <section>
+          <h3>Поза</h3>
+          <select id="poseSelect"></select>
         </section>
 
         <section>
@@ -49,7 +52,7 @@ export function buildLayout(root, data, state) {
           </label>
         </section>
 
-        <footer id="stats"></footer>
+        <footer id="stats">Выбери параметры</footer>
       </aside>
 
       <main>
@@ -60,6 +63,7 @@ export function buildLayout(root, data, state) {
   `;
 
   buildPoseTypeFilters(data, state);
+  buildPoseSelect(data, state);
 
   buildSelect('cameraSelect', data.cameras, state, 'camera');
   buildSelect('locationSelect', data.locations, state, 'location');
@@ -67,80 +71,74 @@ export function buildLayout(root, data, state) {
   buildSelect('colorSelect', data.colors, state, 'color');
   buildSelect('emotionSelect', data.emotions, state, 'emotion');
 
-  bindToggles(state);
+  document.getElementById('identityToggle').onchange = e => {
+    state.useIdentity = e.target.checked;
+    state.onChange();
+  };
+
+  document.getElementById('ownClothesToggle').onchange = e => {
+    state.useOwnClothes = e.target.checked;
+    state.onChange();
+  };
 }
 
-/* =====================================================
-   FILTERS
-===================================================== */
+/* ---------- helpers ---------- */
 
 function buildPoseTypeFilters(data, state) {
-  const container = document.getElementById('poseTypeFilters');
-  container.innerHTML = '';
+  const wrap = document.getElementById('poseTypeFilters');
+  wrap.innerHTML = '';
 
   const types = [...new Set(data.poses.map(p => p.type))];
 
   types.forEach(type => {
     const btn = document.createElement('button');
-    btn.className = 'filter-btn';
     btn.textContent = type;
+    btn.className = 'filter-btn';
 
     btn.onclick = () => {
       state.poseType = type;
-
-      container
-        .querySelectorAll('.filter-btn')
-        .forEach(b => b.classList.remove('active'));
-
-      btn.classList.add('active');
+      state.selectedPose = null;
+      buildPoseSelect(data, state);
       state.onChange();
     };
 
-    container.appendChild(btn);
+    wrap.appendChild(btn);
   });
 }
 
-/* =====================================================
-   SELECT BUILDERS
-===================================================== */
+function buildPoseSelect(data, state) {
+  const select = document.getElementById('poseSelect');
+  select.innerHTML = '<option value="">— не выбрано —</option>';
 
-function buildSelect(selectId, source, state, stateKey) {
-  const select = document.getElementById(selectId);
-  select.innerHTML = '';
+  data.poses
+    .filter(p => !state.poseType || p.type === state.poseType)
+    .forEach(pose => {
+      const opt = document.createElement('option');
+      opt.value = pose.id;
+      opt.textContent = pose.name;
+      if (state.selectedPose === pose.id) opt.selected = true;
+      select.appendChild(opt);
+    });
 
-  const emptyOption = document.createElement('option');
-  emptyOption.value = '';
-  emptyOption.textContent = '— не выбрано —';
-  select.appendChild(emptyOption);
+  select.onchange = e => {
+    state.selectedPose = e.target.value || null;
+    state.onChange();
+  };
+}
 
-  Object.entries(source).forEach(([key, item]) => {
-    const option = document.createElement('option');
-    option.value = key;
-    option.textContent = item.name;
-    select.appendChild(option);
+function buildSelect(id, source, state, key) {
+  const select = document.getElementById(id);
+  select.innerHTML = '<option value="">— не выбрано —</option>';
+
+  Object.entries(source).forEach(([k, v]) => {
+    const opt = document.createElement('option');
+    opt.value = k;
+    opt.textContent = v.name;
+    select.appendChild(opt);
   });
 
   select.onchange = e => {
-    state[stateKey] = e.target.value || null;
-    state.onChange();
-  };
-}
-
-/* =====================================================
-   TOGGLES
-===================================================== */
-
-function bindToggles(state) {
-  const identityToggle = document.getElementById('identityToggle');
-  const ownClothesToggle = document.getElementById('ownClothesToggle');
-
-  identityToggle.onchange = e => {
-    state.useIdentity = e.target.checked;
-    state.onChange();
-  };
-
-  ownClothesToggle.onchange = e => {
-    state.useOwnClothes = e.target.checked;
+    state[key] = e.target.value || null;
     state.onChange();
   };
 }
