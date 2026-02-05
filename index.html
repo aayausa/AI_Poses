@@ -2,15 +2,22 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <title>AI Pose Master</title>
+  <title>AI Poses MASTER</title>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- базовые стили проекта -->
   <link rel="stylesheet" href="./assets/css/style.css" />
+
+  <!-- чтобы не было ошибки favicon -->
+  <link rel="icon" href="data:," />
 </head>
 
 <body>
+  <!-- ЕДИНСТВЕННЫЙ КОНТЕЙНЕР -->
   <div id="app"></div>
 
+  <!-- ТОЧКА ВХОДА -->
   <script type="module">
     import { bootstrap } from './core/bootstrap.js';
     bootstrap('#app');
