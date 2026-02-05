@@ -26,12 +26,20 @@ export function initRenderer(root, data, state) {
 
         const isActive = state.selectedPose === pose.id;
 
+        // preview prompt (ПОКА только базовый)
+        const previewPrompt = pose.prompt?.base || '';
+
         col.innerHTML = `
           <div class="card h-100 ${isActive ? 'border-dark' : ''}" style="cursor:pointer">
             <div class="card-body">
               <h6 class="card-title mb-1">${pose.name}</h6>
-              <div class="small text-muted">
+
+              <div class="small text-muted mb-2">
                 ${pose.type} · ${pose.composition}
+              </div>
+
+              <div class="small text-secondary fst-italic">
+                ${previewPrompt}
               </div>
             </div>
           </div>
