@@ -1,6 +1,6 @@
 export function initState() {
   return {
-    poseType: null,
+    poseType: 'standing', // ← ВАЖНО
     selectedPose: null,
 
     camera: null,
