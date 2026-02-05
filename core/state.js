@@ -1,5 +1,3 @@
-// core/state.js
-
 export function initState(data) {
   const state = {
     poseType: null,
@@ -7,7 +5,10 @@ export function initState(data) {
     location: null,
     wardrobe: null,
     color: null,
-    identity: false,
+
+    useIdentity: false,
+    useOwnClothes: false, // ← ВАЖНО
+    emotion: null,        // ← ВАЖНО
 
     onChange() {}
   };

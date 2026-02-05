@@ -32,10 +32,20 @@ export function buildLayout(root, data, state) {
           <select id="colorSelect"></select>
         </section>
 
-        <section class="identity">
+        <section>
+          <h3>Эмоция</h3>
+          <select id="emotionSelect"></select>
+        </section>
+
+        <section class="toggles">
           <label>
             <input type="checkbox" id="identityToggle">
             Использовать своё фото
+          </label>
+
+          <label>
+            <input type="checkbox" id="ownClothesToggle">
+            Использовать свою одежду
           </label>
         </section>
 
@@ -50,25 +60,38 @@ export function buildLayout(root, data, state) {
   `;
 
   buildPoseTypeFilters(data, state);
+
   buildSelect('cameraSelect', data.cameras, state, 'camera');
   buildSelect('locationSelect', data.locations, state, 'location');
   buildSelect('wardrobeSelect', data.wardrobe, state, 'wardrobe');
   buildSelect('colorSelect', data.colors, state, 'color');
+  buildSelect('emotionSelect', data.emotions, state, 'emotion');
+
+  bindToggles(state);
 }
+
+/* =====================================================
+   FILTERS
+===================================================== */
 
 function buildPoseTypeFilters(data, state) {
   const container = document.getElementById('poseTypeFilters');
+  container.innerHTML = '';
+
   const types = [...new Set(data.poses.map(p => p.type))];
 
   types.forEach(type => {
     const btn = document.createElement('button');
-    btn.textContent = type;
     btn.className = 'filter-btn';
+    btn.textContent = type;
 
     btn.onclick = () => {
       state.poseType = type;
-      document.querySelectorAll('.filter-btn')
+
+      container
+        .querySelectorAll('.filter-btn')
         .forEach(b => b.classList.remove('active'));
+
       btn.classList.add('active');
       state.onChange();
     };
@@ -77,19 +100,47 @@ function buildPoseTypeFilters(data, state) {
   });
 }
 
-function buildSelect(id, source, state, key) {
-  const select = document.getElementById(id);
+/* =====================================================
+   SELECT BUILDERS
+===================================================== */
+
+function buildSelect(selectId, source, state, stateKey) {
+  const select = document.getElementById(selectId);
   select.innerHTML = '';
 
-  Object.entries(source).forEach(([id, item]) => {
+  const emptyOption = document.createElement('option');
+  emptyOption.value = '';
+  emptyOption.textContent = '— не выбрано —';
+  select.appendChild(emptyOption);
+
+  Object.entries(source).forEach(([key, item]) => {
     const option = document.createElement('option');
-    option.value = id;
+    option.value = key;
     option.textContent = item.name;
     select.appendChild(option);
   });
 
   select.onchange = e => {
-    state[key] = e.target.value;
+    state[stateKey] = e.target.value || null;
+    state.onChange();
+  };
+}
+
+/* =====================================================
+   TOGGLES
+===================================================== */
+
+function bindToggles(state) {
+  const identityToggle = document.getElementById('identityToggle');
+  const ownClothesToggle = document.getElementById('ownClothesToggle');
+
+  identityToggle.onchange = e => {
+    state.useIdentity = e.target.checked;
+    state.onChange();
+  };
+
+  ownClothesToggle.onchange = e => {
+    state.useOwnClothes = e.target.checked;
     state.onChange();
   };
 }
