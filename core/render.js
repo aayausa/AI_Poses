@@ -64,30 +64,39 @@ export function initRenderer(root, data, state) {
   }
 
   function renderStats() {
-    const parts = [];
+  const lines = [];
 
-    if (state.selectedPose) {
-      const pose = data.poses.find(p => p.id === state.selectedPose);
-      if (pose) parts.push(`Поза: <b>${pose.name}</b>`);
+  // человекочитаемое состояние
+  if (state.selectedPose) {
+    const pose = data.poses.find(p => p.id === state.selectedPose);
+    if (pose) lines.push(`Поза: ${pose.name}`);
+  }
+
+  if (state.camera) lines.push(`Камера: ${state.camera}`);
+  if (state.location) lines.push(`Локация: ${state.location}`);
+  if (state.wardrobe) lines.push(`Одежда: ${state.wardrobe}`);
+  if (state.color) lines.push(`Цвет: ${state.color}`);
+  if (state.emotion) lines.push(`Эмоция: ${state.emotion}`);
+
+  if (state.useIdentity) lines.push(`Использовать своё фото`);
+  if (state.useOwnClothes) lines.push(`Использовать свою одежду`);
+
+  // ===== ФИНАЛЬНЫЙ PROMPT =====
+  const finalPrompt = buildFinalPrompt(state, data);
+
+  stats.innerHTML = `
+    <div class="mb-2">
+      ${lines.length ? lines.join(' · ') : 'Выбери параметры'}
+    </div>
+
+    ${
+      finalPrompt
+        ? `<pre class="small bg-light p-2 border rounded">${finalPrompt}</pre>`
+        : ''
     }
-
-    if (state.camera) parts.push(`Камера: ${state.camera}`);
-    if (state.location) parts.push(`Локация: ${state.location}`);
-    if (state.wardrobe) parts.push(`Одежда: ${state.wardrobe}`);
-    if (state.color) parts.push(`Цвет: ${state.color}`);
-    if (state.emotion) parts.push(`Эмоция: ${state.emotion}`);
-    if (state.useIdentity) parts.push('Своё фото');
-    if (state.useOwnClothes) parts.push('Своя одежда');
-
-    stats.innerHTML = parts.length
-      ? parts.join(' · ')
-      : 'Выбери параметры';
-    const finalPrompt = buildFinalPrompt(state, data);
-if (finalPrompt) {
-  parts.push(`<br><span class="text-muted">Prompt:</span> ${finalPrompt}`);
+  `;
 }
 
-  }
 
   state.onChange = render;
   render();
