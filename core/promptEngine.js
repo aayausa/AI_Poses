@@ -1,63 +1,84 @@
 // core/promptEngine.js
 
-/**
- * Собирает финальный prompt из state и data
- * Ничего не знает про UI
- */
-
 export function buildFinalPrompt(state, data) {
-  const parts = [];
+  const positive = [];
+  const negative = [];
 
-  // 1) ПОЗА
+  /* ================= POSITIVE ================= */
+
+  // ПОЗА
   if (state.selectedPose) {
     const pose = data.poses.find(p => p.id === state.selectedPose);
     if (pose?.prompt?.base) {
-      parts.push(pose.prompt.base);
+      positive.push(pose.prompt.base);
     }
   }
 
-  // 2) КАМЕРА
+  // КАМЕРА
   if (state.camera && data.cameras[state.camera]?.prompt) {
-    parts.push(data.cameras[state.camera].prompt);
+    positive.push(data.cameras[state.camera].prompt);
   }
 
-  // 3) ЛОКАЦИЯ
+  // ЛОКАЦИЯ
   if (state.location && data.locations[state.location]?.prompt) {
-    parts.push(data.locations[state.location].prompt);
+    positive.push(data.locations[state.location].prompt);
   }
 
-  // 4) ГАРДЕРОБ
+  // ГАРДЕРОБ
   if (!state.useOwnClothes && state.wardrobe && data.wardrobe[state.wardrobe]?.prompt) {
-    parts.push(data.wardrobe[state.wardrobe].prompt);
+    positive.push(data.wardrobe[state.wardrobe].prompt);
   }
 
-  // 5) ЦВЕТ
+  // ЦВЕТ
   if (state.color && data.colors[state.color]?.prompt) {
-    parts.push(data.colors[state.color].prompt);
+    positive.push(data.colors[state.color].prompt);
   }
 
-  // 6) ЭМОЦИЯ
+  // ЭМОЦИЯ
   if (state.emotion && data.emotions[state.emotion]?.prompt) {
-    parts.push(data.emotions[state.emotion].prompt);
+    positive.push(data.emotions[state.emotion].prompt);
   }
 
-  // 7) СВОЁ ФОТО
+  // СВОЁ ФОТО
   if (state.useIdentity) {
-    parts.push('use the exact same person from the reference image, preserve facial identity');
+    positive.push(
+      'use the same person from the reference image, preserve facial identity, same face structure'
+    );
   }
 
-  // 8) СВОЯ ОДЕЖДА
+  // СВОЯ ОДЕЖДА
   if (state.useOwnClothes) {
-    parts.push('wearing the same clothing as in the reference image');
+    positive.push(
+      'wearing the same clothes as in the reference image'
+    );
   }
 
-  // финальная строка
-  return cleanPrompt(parts.join(', '));
+  /* ================= NEGATIVE ================= */
+
+  negative.push(
+    'blurry',
+    'low quality',
+    'bad anatomy',
+    'extra limbs',
+    'extra fingers',
+    'deformed body',
+    'distorted face',
+    'wrong proportions'
+  );
+
+  /* ================= FINAL ================= */
+
+  const positiveText = clean(positive.join(', '));
+  const negativeText = clean(negative.join(', '));
+
+  if (!positiveText) return '';
+
+  return `${positiveText}\n\n--negative ${negativeText}`;
 }
 
 /* ================= HELPERS ================= */
 
-function cleanPrompt(text) {
+function clean(text) {
   return text
     .replace(/\s+/g, ' ')
     .replace(/,\s*,/g, ',')
