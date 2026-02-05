@@ -880,4 +880,50 @@ export const posesDB = [
 }
 ,
 
+/* ===================== LYING · SOLO ===================== */
+
+{
+  id: 'lying_on_back_relaxed',
+  name: 'Лёжа на спине (расслабленно)',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on back, relaxed posture, natural body alignment' }
+},
+{
+  id: 'lying_on_back_arms_up',
+  name: 'Лёжа на спине, руки вверх',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on back with arms raised above head, relaxed pose' }
+},
+{
+  id: 'lying_on_side_fetal',
+  name: 'Лёжа на боку (поза эмбриона)',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on side in fetal position, calm relaxed mood' }
+},
+{
+  id: 'lying_on_side_stretched',
+  name: 'Лёжа на боку, вытянуто',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on side with extended body, elegant relaxed pose' }
+},
+{
+  id: 'lying_on_stomach',
+  name: 'Лёжа на животе',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on stomach, relaxed body posture' }
+},
+{
+  id: 'lying_on_stomach_head_up',
+  name: 'Лёжа на животе, опора на локти',
+  type: 'lying',
+  composition: 'solo',
+  prompt: { base: 'person lying on stomach, upper body raised on elbows, relaxed confident pose' }
+}
+,
+
 ];

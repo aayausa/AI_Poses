@@ -1,16 +1,17 @@
 // core/render.js
 
 import { buildFinalPrompt } from './promptEngine.js';
+import { renderPoseSVG } from './PoseSVGRenderer.js';
 
 export function initRenderer(root, data, state) {
   const grid = root.querySelector('#poseGrid');
   const stats = root.querySelector('#stats');
 
   function render() {
-    // ===== 1. БЕЗОПАСНО ПОЛУЧАЕМ ПОЗЫ =====
+    // ===== 1. ПОЛУЧАЕМ ПОЗЫ =====
     let poses = Array.isArray(data.poses) ? data.poses : [];
 
-    // ===== 2. ФИЛЬТР ПО ТИПУ (НО БЕЗ ПУСТОТЫ) =====
+    // ===== 2. ФИЛЬТР ПО ТИПУ =====
     if (state.poseType) {
       const filtered = poses.filter(p => p.type === state.poseType);
       if (filtered.length) poses = filtered;
@@ -25,48 +26,59 @@ export function initRenderer(root, data, state) {
           Нет поз
         </div>
       `;
-    } else {
-      poses.forEach(pose => {
-        const col = document.createElement('div');
-        col.className = 'col-12 col-sm-6 col-lg-4';
-
-        const isActive = state.selectedPose === pose.id;
-
-        col.innerHTML = `
-          <div class="card h-100 ${isActive ? 'border-dark shadow-sm' : ''}" style="cursor:pointer">
-            <div class="card-body">
-              <h6 class="card-title mb-1">${pose.name}</h6>
-              <div class="small text-muted mb-2">
-                ${pose.type} · ${pose.composition}
-              </div>
-              <div class="small fst-italic text-secondary">
-                ${pose.prompt?.base || ''}
-              </div>
-            </div>
-          </div>
-        `;
-
-        col.onclick = () => {
-          state.selectedPose = pose.id;
-
-          // синхронизация select
-          const select = document.getElementById('poseSelect');
-          if (select) select.value = pose.id;
-
-          state.onChange();
-        };
-
-        grid.appendChild(col);
-      });
+      return;
     }
 
-    // ===== 4. СИНХРОНИЗАЦИЯ SELECT ВСЕГДА =====
+    poses.forEach(pose => {
+      const col = document.createElement('div');
+      col.className = 'col-12 col-sm-6 col-lg-4';
+
+      const isActive = state.selectedPose === pose.id;
+
+      // ⬇⬇⬇ ВОТ ЗДЕСЬ SVG ВСТАВЛЯЕТСЯ ⬇⬇⬇
+      col.innerHTML = `
+        <div class="card h-100 ${isActive ? 'border-dark shadow-sm' : ''}" style="cursor:pointer">
+          <div class="card-body d-flex flex-column gap-2">
+
+            <!-- SVG ПРЕВЬЮ ПОЗЫ -->
+            <div class="pose-svg-wrapper">
+              ${renderPoseSVG(pose)}
+            </div>
+
+            <h6 class="card-title mb-0">${pose.name}</h6>
+
+            <div class="small text-muted">
+              ${pose.type} · ${pose.composition}
+            </div>
+
+            <div class="small fst-italic text-secondary mt-auto">
+              ${pose.prompt?.base || ''}
+            </div>
+
+          </div>
+        </div>
+      `;
+
+      col.onclick = () => {
+        state.selectedPose = pose.id;
+
+        // синхронизация select
+        const select = document.getElementById('poseSelect');
+        if (select) select.value = pose.id;
+
+        state.onChange();
+      };
+
+      grid.appendChild(col);
+    });
+
+    // ===== 4. СИНХРОНИЗАЦИЯ SELECT =====
     const poseSelect = document.getElementById('poseSelect');
     if (poseSelect) {
       poseSelect.value = state.selectedPose || '';
     }
 
-    // ===== 5. СТАТУС + PROMPT =====
+    // ===== 5. PROMPT =====
     renderStats();
   }
 
@@ -101,7 +113,7 @@ export function initRenderer(root, data, state) {
     `;
   }
 
-  // ===== 6. ПОДПИСКА НА STATE =====
+  // ===== 6. ПОДПИСКА =====
   state.onChange = render;
 
   // ===== 7. ПЕРВЫЙ РЕНДЕР =====
