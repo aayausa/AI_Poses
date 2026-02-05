@@ -1,64 +1,81 @@
+// core/layoutBuilder.js
+
 export function buildLayout(root, data, state) {
   root.innerHTML = `
-    <div class="app">
+    <div class="container-fluid">
+      <div class="row min-vh-100">
 
-      <aside class="sidebar">
-        <div class="logo">AI Poses <span>MASTER</span></div>
+        <!-- SIDEBAR -->
+        <aside class="col-12 col-md-4 col-lg-3 border-end bg-light p-3">
 
-        <section>
-          <h3>Тип позы</h3>
-          <div id="poseTypeFilters" class="filters"></div>
-        </section>
+          <h5 class="fw-bold mb-3">AI Poses MASTER</h5>
 
-        <section>
-          <h3>Поза</h3>
-          <select id="poseSelect"></select>
-        </section>
+          <!-- TYPE FILTER -->
+          <div class="mb-3">
+            <label class="form-label">Тип позы</label>
+            <div id="poseTypeFilters" class="d-flex flex-wrap gap-1"></div>
+          </div>
 
-        <section>
-          <h3>Камера</h3>
-          <select id="cameraSelect"></select>
-        </section>
+          <!-- POSE SELECT -->
+          <div class="mb-3">
+            <label class="form-label">Поза</label>
+            <select id="poseSelect" class="form-select"></select>
+          </div>
 
-        <section>
-          <h3>Локация</h3>
-          <select id="locationSelect"></select>
-        </section>
+          <!-- CAMERA -->
+          <div class="mb-3">
+            <label class="form-label">Камера</label>
+            <select id="cameraSelect" class="form-select"></select>
+          </div>
 
-        <section>
-          <h3>Гардероб</h3>
-          <select id="wardrobeSelect"></select>
-        </section>
+          <!-- LOCATION -->
+          <div class="mb-3">
+            <label class="form-label">Локация</label>
+            <select id="locationSelect" class="form-select"></select>
+          </div>
 
-        <section>
-          <h3>Цвет</h3>
-          <select id="colorSelect"></select>
-        </section>
+          <!-- WARDROBE -->
+          <div class="mb-3">
+            <label class="form-label">Гардероб</label>
+            <select id="wardrobeSelect" class="form-select"></select>
+          </div>
 
-        <section>
-          <h3>Эмоция</h3>
-          <select id="emotionSelect"></select>
-        </section>
+          <!-- COLOR -->
+          <div class="mb-3">
+            <label class="form-label">Цвет</label>
+            <select id="colorSelect" class="form-select"></select>
+          </div>
 
-        <section class="toggles">
-          <label>
-            <input type="checkbox" id="identityToggle">
-            Использовать своё фото
-          </label>
+          <!-- EMOTION -->
+          <div class="mb-3">
+            <label class="form-label">Эмоция</label>
+            <select id="emotionSelect" class="form-select"></select>
+          </div>
 
-          <label>
-            <input type="checkbox" id="ownClothesToggle">
-            Использовать свою одежду
-          </label>
-        </section>
+          <!-- TOGGLES -->
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="identityToggle">
+            <label class="form-check-label">Использовать своё фото</label>
+          </div>
 
-        <footer id="stats">Выбери параметры</footer>
-      </aside>
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="ownClothesToggle">
+            <label class="form-check-label">Использовать свою одежду</label>
+          </div>
 
-      <main>
-        <div id="poseGrid" class="grid"></div>
-      </main>
+          <!-- STATS -->
+          <div id="stats" class="small text-muted">
+            Выбери параметры
+          </div>
 
+        </aside>
+
+        <!-- MAIN -->
+        <main class="col-12 col-md-8 col-lg-9 p-4">
+          <div id="poseGrid" class="row g-3"></div>
+        </main>
+
+      </div>
     </div>
   `;
 
@@ -82,7 +99,9 @@ export function buildLayout(root, data, state) {
   };
 }
 
-/* ---------- helpers ---------- */
+/* =====================================================
+   TYPE FILTER BUTTONS (BOOTSTRAP)
+===================================================== */
 
 function buildPoseTypeFilters(data, state) {
   const wrap = document.getElementById('poseTypeFilters');
@@ -92,12 +111,19 @@ function buildPoseTypeFilters(data, state) {
 
   types.forEach(type => {
     const btn = document.createElement('button');
+    btn.type = 'button';
     btn.textContent = type;
-    btn.className = 'filter-btn';
+    btn.className = 'btn btn-sm btn-outline-dark';
+
+    if (state.poseType === type) {
+      btn.classList.add('active');
+    }
 
     btn.onclick = () => {
       state.poseType = type;
       state.selectedPose = null;
+
+      buildPoseTypeFilters(data, state);
       buildPoseSelect(data, state);
       state.onChange();
     };
@@ -105,6 +131,10 @@ function buildPoseTypeFilters(data, state) {
     wrap.appendChild(btn);
   });
 }
+
+/* =====================================================
+   POSE SELECT
+===================================================== */
 
 function buildPoseSelect(data, state) {
   const select = document.getElementById('poseSelect');
@@ -116,7 +146,11 @@ function buildPoseSelect(data, state) {
       const opt = document.createElement('option');
       opt.value = pose.id;
       opt.textContent = pose.name;
-      if (state.selectedPose === pose.id) opt.selected = true;
+
+      if (state.selectedPose === pose.id) {
+        opt.selected = true;
+      }
+
       select.appendChild(opt);
     });
 
@@ -126,14 +160,18 @@ function buildPoseSelect(data, state) {
   };
 }
 
+/* =====================================================
+   GENERIC SELECT BUILDER
+===================================================== */
+
 function buildSelect(id, source, state, key) {
   const select = document.getElementById(id);
   select.innerHTML = '<option value="">— не выбрано —</option>';
 
-  Object.entries(source).forEach(([k, v]) => {
+  Object.entries(source).forEach(([value, item]) => {
     const opt = document.createElement('option');
-    opt.value = k;
-    opt.textContent = v.name;
+    opt.value = value;
+    opt.textContent = item.name;
     select.appendChild(opt);
   });
 
